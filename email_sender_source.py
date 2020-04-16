@@ -6,16 +6,8 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 
 #Sender and receiver emails.
-    #Send one mail.
 sender = "{SENDER_EMAIL}"
 receiver = "{RECEIVER_EMAIL}"
-
-    #Send group mail from a file. 
-sender = "{SENDER_EMAIL}"
-emails = []
-for mail in open("{FILE}", "r"):
-    emails.append(mail)
-
 
 #Create email headers.
 message = MIMEMultipart("")
@@ -56,11 +48,11 @@ message.attach(part3)
 #Connect to server and send the email.
 context = ssl.create_default_context()
 
-# mail   : smtp adress    |  port no
-# gmail  : smtp.gmail.com |  465,587
-# outlook: smtp.live.com  |  465,587
-# yahoo  : mail.yahoo.com |  465,587
-server = smtplib.SMTP("{SMTP_ADRESS}",{PORT_NO},context=context) #Connect smtp server.
+    # mail   : smtp adress    |  port no
+    # gmail  : smtp.gmail.com |  465,587
+    # outlook: smtp.live.com  |  465,587
+    # yahoo  : mail.yahoo.com |  465,587
+server = smtplib.SMTP("{SMTP_ADRESS}",{PORT_NO}) #Connect smtp server.
 server.starttls()
 server.ehlo_or_helo_if_needed()
 
