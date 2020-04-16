@@ -16,14 +16,14 @@ message["Subject"] = "{SUBJECT}"
 message["From"] = sender
 message["To"] = receiver
 
-#Send text message.
+#Send text mail.
 text = """
 {MESSAGE}
 """
 part1 = MIMEText(text, "plain")
 message.attach(part1)
 
-#Send attachment with message.
+#Send mail with attachment.
 filepath = "{FILEPATH}"
 part2 = MIMEBase("application", "octet-stream")
 part2.set_payload(open(filepath, "rb").read())
@@ -33,7 +33,7 @@ part2.add_header("Content-Disposition", "attachment; filename= {FILENAME}")
 
 message.attach(part2)
 
-#Send message with html tags.
+#Send mail with html tags.
 html = """
 <html>
     <body>
@@ -58,12 +58,13 @@ server.ehlo_or_helo_if_needed()
 
 server.login(sender,"{PASSWORD}") #Login your account
 
-try:
-    server.sendmail(
-                sender, receiver, message.as_string()
-            )
-    server.quit()
-    print("Email sent successfully")
-except:
-    pass
+for i in range({HOW_MANY}):
+    try:
+        server.sendmail(
+                    sender, receiver, message.as_string()
+                )
+        print("Email sent successfully")
+    except:
+        pass
 
+server.quit()
