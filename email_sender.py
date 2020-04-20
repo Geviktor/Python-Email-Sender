@@ -1,70 +1,86 @@
 #Import
 import smtplib, ssl
+from time import sleep
 from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 
-#Sender and receiver emails.
-sender = "{SENDER_EMAIL}"
-receiver = "{RECEIVER_EMAIL}"
+msg = MIMEMultipart("")
 
-#Create email headers.
-message = MIMEMultipart("")
+def textMsg(sender,receiver,text):
+    global msg
+    msg["Subject"] = ""
+    msg["From"] = sender
+    msg["To"] = receiver
+    part1 = MIMEText(text, "plain")
+    msg.attach(part1)
 
-message["Subject"] = "{SUBJECT}"
-message["From"] = sender
-message["To"] = receiver
+def attachMsg(filepath,filename):
+    global msg
+    part2 = MIMEBase("application", "octet-stream")
+    part2.set_payload(open(filepath, "rb").read())
+    encoders.encode_base64(part2)
 
-#Send text mail.
-text = """
-{MESSAGE}
-"""
-part1 = MIMEText(text, "plain")
-message.attach(part1)
-
-#Send mail with attachment.
-filepath = "{FILEPATH}"
-part2 = MIMEBase("application", "octet-stream")
-part2.set_payload(open(filepath, "rb").read())
-encoders.encode_base64(part2)
-
-part2.add_header("Content-Disposition", "attachment; filename= {FILENAME}")
-
-message.attach(part2)
-
-#Send mail with html tags.
-html = """
-<html>
-    <body>
-       {ENTER_HTML}
-    </body>
-</html>
-"""
-part3 = MIMEText(html, "html")
-message.attach(part3)
+    part2.add_header("Content-Disposition", f"attachment; filename= {filename}")
+    msg.attach(part2)
 
 
-#Connect to server and send the email.
-context = ssl.create_default_context()
+def htmlMsg(html):
+    global msg
+    part3 = MIMEText(html, "html")
+    msg.attach(part3)
 
-    # mail   : smtp adress    |  port no
-    # gmail  : smtp.gmail.com |  465,587
-    # outlook: smtp.live.com  |  465,587
-    # yahoo  : mail.yahoo.com |  465,587
-server = smtplib.SMTP("{SMTP_ADRESS}",{PORT_NO}) #Connect smtp server.
-server.starttls()
-server.ehlo_or_helo_if_needed()
+def loginEmail(sender,password):
+    context = ssl.create_default_context()
+     # mail   : smtp adress    |  port no
+     # gmail  : smtp.gmail.com |  465,587
+     # outlook: smtp.live.com  |  465,587
+     # yahoo  : mail.yahoo.com |  465,587
+    server = smtplib.SMTP("smtp.gmail.com",587)
+    server.starttls()
+    server.ehlo_or_helo_if_needed()
+    server.login(sender,password)
 
-server.login(sender,"{PASSWORD}") #Login your account
+    return server
 
-for i in range({HOW_MANY}):
-    try:
-        server.sendmail(
-                    sender, receiver, message.as_string()
-                )
-        print("Email sent successfully")
-    except:
-        pass
+def sendEmail(sender,receiver,password,msg,many):
+    server = loginEmail(sender,password)
+    for i in range(many):
+        try:
+            server.sendmail(sender,receiver,msg.as_string())
+            if i != 0 and i % 30 == 0:
+                server.quit()
+                print("Wait 1 minute...")
+                sleep(60)
+                server = loginEmail(sender,password)
+            print(f"{i}. Email sent successfully.")
+        except:
+            print("Error.")
+    
+    server.quit()
 
-server.quit()
+def main():
+    global msg
+    sender = "{SENDER}"
+    password = "{PASSWORD}"
+    receiver = "{RECEIVER}"
+    many = {HOW_MANY}
+
+    text = """
+    {ENTER_MESSAGE}
+    """
+    html = """
+    <html>
+        <body>
+            {ENTER_TAGS}
+        </body>
+    </html>
+    """
+    filepath = "{FILE/PATH}"
+    filename = "{FILENAME}"
+
+    textMsg(sender,receiver,text)
+    htmlMsg(html)
+    attachMsg(filepath,filename)
+    sendEmail(sender,receiver,password,msg,many)
