@@ -6,16 +6,19 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 
+#Create email content.
 msg = MIMEMultipart("")
 
-def textMsg(sender,receiver,text):
+#Add a text in email.
+def textMsg(sender,receiver,subject,text):
     global msg
-    msg["Subject"] = ""
+    msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = receiver
     part1 = MIMEText(text, "plain")
     msg.attach(part1)
 
+#Add a file attachment in email.
 def attachMsg(filepath,filename):
     global msg
     part2 = MIMEBase("application", "octet-stream")
@@ -25,12 +28,13 @@ def attachMsg(filepath,filename):
     part2.add_header("Content-Disposition", f"attachment; filename= {filename}")
     msg.attach(part2)
 
-
+#Add html tag in email.
 def htmlMsg(html):
     global msg
     part3 = MIMEText(html, "html")
     msg.attach(part3)
 
+#Connect and login the sender email address.
 def loginEmail(sender,password):
     context = ssl.create_default_context()
      # mail   : smtp adress    |  port no
@@ -44,32 +48,37 @@ def loginEmail(sender,password):
 
     return server
 
+#Send the email
 def sendEmail(sender,receiver,password,msg,many):
     server = loginEmail(sender,password)
-    for i in range(many):
+    for i in range(1,many+1):
         try:
-            server.sendmail(sender,receiver,msg.as_string())
-            if i != 0 and i % 30 == 0:
+            if i % 30 == 0:
                 server.quit()
                 print("Wait 1 minute...")
                 sleep(60)
                 server = loginEmail(sender,password)
+            server.sendmail(sender,receiver,msg.as_string())
             print(f"{i}. Email sent successfully.")
         except:
             print("Error.")
     
     server.quit()
 
+#Set parameters and send to function.
 def main():
     global msg
     sender = "{SENDER}"
     password = "{PASSWORD}"
     receiver = "{RECEIVER}"
     many = {HOW_MANY}
-
+    
+    subject = "{ENTER_SUBJECT}"
     text = """
     {ENTER_MESSAGE}
     """
+    textMsg(sender,receiver,subject,text)
+
     html = """
     <html>
         <body>
@@ -77,10 +86,15 @@ def main():
         </body>
     </html>
     """
+    htmlMsg(html)
+
     filepath = "{FILE/PATH}"
     filename = "{FILENAME}"
-
-    textMsg(sender,receiver,text)
-    htmlMsg(html)
     attachMsg(filepath,filename)
+
+    
     sendEmail(sender,receiver,password,msg,many)
+
+if __name__ == '__main__':
+    main()
+
